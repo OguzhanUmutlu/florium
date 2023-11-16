@@ -236,7 +236,7 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
             }
 
             if (hasEscape) {
-                const m = checkSubstrHelper(code, i, options.injectorStart);
+                const m = checkSubstrHelper(code, i, options.escape);
                 if (m) {
                     index[0] = m[0];
                     escape = !escape;
@@ -252,11 +252,11 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
     };
 }
 
-export function buildBasicRepeatingTokenizer(type: string, characters: string[]): Tokenizer {
+export function buildBasicRepeatingTokenizer(type: string, start: string[], step: string[]): Tokenizer {
     return function (code: string, index: Int32Array, tokens: Token[]) {
         const startIndex = index[0];
         const startChar = code[startIndex];
-        if (!characters.includes(startChar)) return false;
+        if (!start.includes(startChar)) return false;
         const len = code.length;
         let result = startChar;
         while (true) {
@@ -268,7 +268,7 @@ export function buildBasicRepeatingTokenizer(type: string, characters: string[])
 
             const char = code[i];
 
-            if (!characters.includes(char)) {
+            if (!step.includes(char)) {
                 index[0]--;
                 break;
             }

@@ -33,5 +33,6 @@ export default {
     "}": "close-curly-brace",
     ";": "semicolon",
     ".": "dot",
+    ",": "comma",
     "\n": "line"
 };

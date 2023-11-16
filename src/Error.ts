@@ -23,6 +23,7 @@ export function throwError(code: string, index: number, type: string, error: str
         if (i === 0) {
             console.error(red("> ") + blue((l + 1) + " | " + lines[l].substring(0, key - 1)) + red(lines[l].substring(key - 1, key - 1 + length) ?? "") + blue(lines[l].substring(key - 1 + length)));
             console.error(" ".repeat(key + l.toString().length + 4) + red("^".repeat(length)));
+            // handle the case where the length of the error text gets to a \n, make the new lines red too
         } else {
             console.error(blue("  " + (l + 1) + " | " + lines[l]));
         }
@@ -37,6 +38,10 @@ export function syntaxError(code: string, index: number, error: string, length: 
 
 export function typeError(code: string, index: number, error: string, length: number = 1) {
     throwError(code, index, "TypeError", error, length);
+}
+
+export function referenceError(code: string, index: number, error: string, length: number = 1) {
+    throwError(code, index, "ReferenceError", error, length);
 }
 
 export function runtimeError(code: string, index: number, error: string, length: number = 1) {

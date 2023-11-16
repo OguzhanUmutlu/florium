@@ -6,3 +6,4 @@ export * from "./tokenizer/builders/RepeatingTokenizer";
 export * from "./tokenizer/builders/IgnorantTokenizer";
 export * from "./tokenizer/builders/SymbolTokenizer";
 export * from "./ast/builders/ASTSyntax";
+export * from "./Error";

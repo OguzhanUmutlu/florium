@@ -5,12 +5,14 @@ import {
     buildRepeatingTokenizer,
     buildSymbolTokenizer,
     Tokenizers
-} from "../../src/index";
+} from "../../../src/index";
 import SymbolMap from "./symbols";
 import WordCharacters from "./letters";
 import CommentMap from "./comment";
 import IntegerCharacters from "./integer";
 import IgnoredCharacters from "./ignored";
+
+const WordAndIntegerCharacters = [...WordCharacters, ...IntegerCharacters];
 
 export function useTokens() {
     Tokenizers.length = 0;
@@ -22,12 +24,19 @@ export function useTokens() {
             start: ["'", '"'],
             end: [".start"],
             escape: ["\\"],
+            fileEndThrow: true
+        }),
+        buildRepeatingTokenizer({
+            type: "template_string",
+            start: ["`"],
+            end: ["`"],
+            escape: ["\\"],
             injectorStart: ["${"],
             injectorEnd: ["}"],
             fileEndThrow: true
         }),
-        buildBasicRepeatingTokenizer("integer", IntegerCharacters),
-        buildBasicRepeatingTokenizer("word", WordCharacters),
+        buildBasicRepeatingTokenizer("integer", IntegerCharacters, IntegerCharacters),
+        buildBasicRepeatingTokenizer("word", WordCharacters, WordAndIntegerCharacters),
         buildIgnorantTokenizer(IgnoredCharacters)
     );
 }

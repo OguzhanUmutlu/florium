@@ -1,7 +1,7 @@
 import {Token} from "../../Tokenizer";
 import {throwCliError} from "../../Error";
 
-export type ASTSyntaxMatch<T extends keyof Token = keyof Token> = [T, Token[T]];
+export type ASTSyntaxMatch<T extends keyof Token = keyof Token> = [T, Token[T], boolean];
 
 export type ASTSyntaxMode = "some" | "every";
 
@@ -11,7 +11,8 @@ export type ASTSingleSyntax = {
     min: number,
     max: number,
     mode: ASTSyntaxMode,
-    jobId: null | number
+    jobId: null | number,
+    jobAllId: null | number
 };
 
 export type ASTBuilder = {
@@ -80,24 +81,29 @@ export class ASTSyntax {
             const k = ASTSyntax.any(null, "some");
             for (const s of spl) {
                 const colonSpl = s.split(":");
+                const orIsIt = colonSpl[0] === "!" || colonSpl[0][0] !== "!";
                 if (colonSpl.length === 1) {
-                    k.matches.push(["value", colonSpl[0]]);
+                    k.matches.push(["value", colonSpl[0], true]);
                     continue;
                 }
                 if (["end", "!"].includes(colonSpl[0])) {
-                    k.matches.push(["_end", true]);
+                    k.matches.push(["_end", "", orIsIt]);
                     continue;
                 }
                 if (["value", "v"].includes(colonSpl[0])) {
-                    k.matches.push(["value", colonSpl[1]]);
+                    k.matches.push(["value", colonSpl[1], orIsIt]);
                     continue;
                 }
                 if (["space", "s"].includes(colonSpl[0])) {
-                    k.matches.push(["value", " "]);
+                    k.matches.push(["value", " ", orIsIt]);
                     continue;
                 }
-                if (["colon", "c"].includes(colonSpl[0])) {
-                    k.matches.push(["value", ":"]);
+                if (["colon", "d"].includes(colonSpl[0])) {
+                    k.matches.push(["value", ":", orIsIt]);
+                    continue;
+                }
+                if (["comma", "c"].includes(colonSpl[0])) {
+                    k.matches.push(["value", ",", orIsIt]);
                     continue;
                 }
                 if (colonSpl[0] === "mode") {
@@ -105,13 +111,13 @@ export class ASTSyntax {
                     k.mode = <ASTSyntaxMode>colonSpl[1];
                     continue;
                 }
-                if (["min", "<"].includes(colonSpl[0])) {
+                if (["min", ">", ">="].includes(colonSpl[0])) {
                     const v = parseInt(colonSpl[1]);
                     if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
                     k.min = v;
                     continue;
                 }
-                if (["max", ">"].includes(colonSpl[0])) {
+                if (["max", "<", "<="].includes(colonSpl[0])) {
                     const v = ["inf", "infinity"].includes(colonSpl[1].toLowerCase()) ? Infinity : parseInt(colonSpl[1]);
                     if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
                     k.max = v;
@@ -127,13 +133,19 @@ export class ASTSyntax {
                     k.jobId = v;
                     continue;
                 }
+                if (["jobAll", "ja"].includes(colonSpl[0])) {
+                    const v = ["inf", "infinity"].includes(colonSpl[1].toLowerCase()) ? Infinity : parseInt(colonSpl[1]);
+                    if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
+                    k.jobAllId = v;
+                    continue;
+                }
                 if (["type", "t", ""].includes(colonSpl[0])) {
                     if (colonSpl[1] === "*") {
                         k.mode = "every";
                         k.matches = [];
                         continue;
                     }
-                    k.matches.push(["type", colonSpl[1]]);
+                    k.matches.push(["type", colonSpl[1], orIsIt]);
                     continue;
                 }
                 throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
@@ -144,43 +156,46 @@ export class ASTSyntax {
         return astSyntax;
     };
 
-    static type(types: string | string[], build?: ASTBuilderFN): ASTSingleSyntax {
+    static type(types: string | string[], build?: ASTBuilderFN, yes = true): ASTSingleSyntax {
         const helper = makeHelper({
             label: null,
-            matches: typeof types === "string" ? [["type", types]] : types.map(type => ["type", type]),
+            matches: typeof types === "string" ? [["type", types, yes]] : types.map(type => ["type", type, yes]),
             min: 1,
             max: 1,
             mode: "some",
-            jobId: null
+            jobId: null,
+            jobAllId: null
         });
         if (build) build(helper);
         return helper.data;
     };
 
-    static value(values: string | string[], build?: ASTBuilderFN): ASTSingleSyntax {
+    static value(values: string | string[], build?: ASTBuilderFN, yes = true): ASTSingleSyntax {
         const helper = makeHelper({
             label: null,
-            matches: typeof values === "string" ? [["value", values]] : values.map(value => ["value", value]),
+            matches: typeof values === "string" ? [["value", values, yes]] : values.map(value => ["value", value, yes]),
             min: 1,
             max: 1,
             mode: "some",
-            jobId: null
+            jobId: null,
+            jobAllId: null
         });
         if (build) build(helper);
         return helper.data;
     };
 
-    static typeValue(values: string | string[], types: string | string[], build?: ASTBuilderFN): ASTSingleSyntax {
+    static typeValue(values: string | string[], types: string | string[], build?: ASTBuilderFN, yes = true): ASTSingleSyntax {
         const helper = makeHelper({
             label: null,
             matches: <ASTSyntaxMatch[]>[
-                ...(typeof values === "string" ? [["value", values]] : values.map(value => ["value", value])),
-                ...(typeof types === "string" ? [["type", types]] : types.map(type => ["type", type])),
+                ...(typeof values === "string" ? [["value", values, yes]] : values.map(value => ["value", value, yes])),
+                ...(typeof types === "string" ? [["type", types, yes]] : types.map(type => ["type", type, yes])),
             ],
             min: 1,
             max: 1,
             mode: "some",
-            jobId: null
+            jobId: null,
+            jobAllId: null
         });
         if (build) build(helper);
         return helper.data;
@@ -193,7 +208,8 @@ export class ASTSyntax {
             min: 1,
             max: 1,
             mode,
-            jobId: null
+            jobId: null,
+            jobAllId: null
         });
         if (build) build(helper);
         return helper.data;

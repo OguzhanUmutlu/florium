@@ -17,12 +17,12 @@ export const ASTErrors = {
 function checkASTMatches(token: Token, type: ASTSyntaxMode, matches: ASTSyntaxMatch[]) {
     if (type === "some") {
         for (const match of matches) {
-            if (token[match[0]] === match[1]) return true;
+            if ((token[match[0]] === match[1]) === match[2]) return true;
         }
         return false;
     } else {
         for (const match of matches) {
-            if (token[match[0]] !== match[1]) return false;
+            if ((token[match[0]] !== match[1]) === match[2]) return false;
         }
         return true;
     }
@@ -34,7 +34,7 @@ function checkASTSyntax(
 ): null | [number, Token[]] {
     const result: Token[] = [];
     if (index >= tokens.length) {
-        if (syntax.matches.some(i => i[0] === "_end" && i[1] === true)) return [index, result];
+        if (syntax.matches.some(i => i[0] === "_end" && i[2])) return [index, result];
         return null;
     }
     let untilAmount = 0;
@@ -61,6 +61,11 @@ function checkASTSyntax(
             if (!i.extra || !i.extra.children) return i;
             return ast.read(code, i.extra.children, false);
         }).flat()];
+    }
+    if (syntax.jobAllId) { // warning: might cause infinite recursion if the type of the token is a grouped token list.
+        const ast = astMap[syntax.jobAllId];
+        if (!ast) throwCliError("ASTError", "Invalid AST job-all id: " + syntax.jobId);
+        return [index, ast.read(code, result, false)];
     }
     return [index, result];
 }
@@ -110,5 +115,14 @@ export class AST {
             syntaxError(code, token.index, ASTErrors.unexpectedToken, token.value.length);
         }
         return statements;
-    }
+    };
+
+    static loop(statements: Statement[], handlers: Record<string, Function>, deepness = 0) {
+        for (const statement of statements) {
+            const handler = handlers[statement.type];
+            if (handler) handler(statement, deepness);
+            const children = statement.children ?? statement.extra.children;
+            if (children) AST.loop(children, handlers, deepness + 1);
+        }
+    };
 }
