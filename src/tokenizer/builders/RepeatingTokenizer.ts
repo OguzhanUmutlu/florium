@@ -252,7 +252,7 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
     };
 }
 
-export function buildBasicRepeatingTokenizer(type: string, start: string[], step: string[]): Tokenizer {
+export function buildBasicRepeatingTokenizer(type: string, start: string[], step: string[] = start): Tokenizer {
     return function (code: string, index: Int32Array, tokens: Token[]) {
         const startIndex = index[0];
         const startChar = code[startIndex];

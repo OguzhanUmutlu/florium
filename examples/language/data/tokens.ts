@@ -4,20 +4,18 @@ import {
     buildIgnorantTokenizer,
     buildRepeatingTokenizer,
     buildSymbolTokenizer,
+    CharacterList,
     Tokenizers
 } from "../../../src/index";
 import SymbolMap from "./symbols";
-import WordCharacters from "./letters";
-import CommentMap from "./comment";
-import IntegerCharacters from "./integer";
-import IgnoredCharacters from "./ignored";
-
-const WordAndIntegerCharacters = [...WordCharacters, ...IntegerCharacters];
 
 export function useTokens() {
     Tokenizers.length = 0;
     Tokenizers.push(
-        buildCommentTokenizer(CommentMap),
+        buildCommentTokenizer({
+            "//": "\n",
+            "/*": "*/"
+        }),
         buildSymbolTokenizer(SymbolMap),
         buildRepeatingTokenizer({
             type: "string",
@@ -35,8 +33,10 @@ export function useTokens() {
             injectorEnd: ["}"],
             fileEndThrow: true
         }),
-        buildBasicRepeatingTokenizer("integer", IntegerCharacters, IntegerCharacters),
-        buildBasicRepeatingTokenizer("word", WordCharacters, WordAndIntegerCharacters),
-        buildIgnorantTokenizer(IgnoredCharacters)
+        buildBasicRepeatingTokenizer("integer", CharacterList.Integer),
+        buildBasicRepeatingTokenizer("word", CharacterList.Word, CharacterList.WordAndInteger),
+        buildIgnorantTokenizer([
+            " ", "\t", "\r"
+        ])
     );
 }

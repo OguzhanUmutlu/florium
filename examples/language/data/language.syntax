@@ -22,9 +22,9 @@ number: :integer
 
 function_call: l:name,:word l:arguments,:group-parenthesis,j:SplitByCommaAST
 
-set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,!:,\n
+set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,#:,\n
 
-inc_dec_variable: l:name,:word l:changer,++,-- ;,!:,\n
+inc_dec_variable: l:name,:word l:changer,++,-- ;,#:,\n
 
 variable: :word
 
@@ -36,11 +36,11 @@ variable: :word
 
 @label: StatementAST
 
-set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,!:,\n
+set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,#:,\n
 
 if_statement: if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:group-curly-brace,j:StatementAST
 
-if_statement: if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:*,>:1,<:inf,ja:ExpressionAST ;,!:,\n
+if_statement: if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:*,>:1,<:inf,ja:ExpressionAST ;,#:,\n
 
 else_statement: else l:scope,:group-curly-brace,j:StatementAST
 
@@ -65,7 +65,7 @@ loop_statement: loop l:scope,:group-curly-brace,j:StatementAST
 
 @label: SplitByCommaAST
 
-split: l:expression,:*,>:1,<:inf,ja:ExpressionAST c:,!:
+split: l:expression,:*,>:1,<:inf,ja:ExpressionAST c:,#:
 
 
 
@@ -75,4 +75,4 @@ split: l:expression,:*,>:1,<:inf,ja:ExpressionAST c:,!:
 
 @label: SplitBySemicolonAST
 
-split: l:expression,:*,>:1,<:inf,ja:StatementAST ;,!:
+split: l:expression,:*,>:1,<:inf,ja:StatementAST ;,#:

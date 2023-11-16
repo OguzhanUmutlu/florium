@@ -93,12 +93,13 @@ export class ASTSyntax {
             const k = ASTSyntax.any(null, "some");
             for (const s of spl) {
                 const colonSpl = s.split(":");
-                const orIsIt = colonSpl[0] === "!" || colonSpl[0][0] !== "!";
+                const orIsIt = colonSpl[0][0] !== "!";
                 if (colonSpl.length === 1) {
                     k.matches.push(["value", colonSpl[0], true]);
                     continue;
                 }
-                if (["end", "!"].includes(colonSpl[0])) {
+                if (!orIsIt) colonSpl[0] = colonSpl[0].substring(1);
+                if (["end", "#"].includes(colonSpl[0])) {
                     k.matches.push(["_end", "", orIsIt]);
                     continue;
                 }
