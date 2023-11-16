@@ -1,7 +1,7 @@
 {
   "name": "urlang",
-  "version": "1.0.0",
-  "description": "This is a library that lets you make your own programming language that can be compiled to machine code!",
+  "version": "1.0.1",
+  "description": "This is a library that lets you build your own programming language!",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "directories": {
@@ -12,11 +12,25 @@
     "dist/index.d.ts"
   ],
   "scripts": {
-    "build": "tsc && npm run minify",
-    "minify": "terser dist/index.js --output dist/index.js --compress --mangle",
+    "build": "tsc && node scripts/minify.js",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OguzhanUmutlu/urlang.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OguzhanUmutlu/urlang"
+  },
+  "homepage": "https://github.com/OguzhanUmutlu/urlang#readme",
+  "keywords": [
+    "language",
+    "programming",
+    "your",
+    "own",
+    "build",
+    "easy"
+  ],
   "author": "OguzhanUmutlu",
   "license": "MIT",
   "devDependencies": {
