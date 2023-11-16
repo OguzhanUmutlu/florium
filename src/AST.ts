@@ -2,6 +2,7 @@ import {Token, tokenize} from "./Tokenizer";
 import {syntaxError, throwCliError} from "./Error";
 import {ASTSingleSyntax, ASTSyntax, ASTSyntaxMatch, ASTSyntaxMode} from "./ast/builders/ASTSyntax";
 import {groupTokens} from "./Grouper";
+import * as fs from "fs";
 
 let astId = 0;
 const astMap: Record<number, AST> = {};
@@ -124,5 +125,19 @@ export class AST {
             const children = statement.children ?? statement.extra.children;
             if (children) AST.loop(children, handlers, deepness + 1);
         }
+    };
+
+    static fromText(text: string) {
+        const ast = new AST();
+        for (const line of text.split("\n")) {
+            const spl = line.indexOf(":");
+            if (spl === -1) continue;
+            ast.syntaxes.push(ASTSyntax.fromText(line.substring(0, spl), line.substring(spl + 1)));
+        }
+        return ast;
+    };
+
+    static fromFile(file: string) {
+        return AST.fromText(fs.readFileSync(file, "utf-8"));
     };
 }

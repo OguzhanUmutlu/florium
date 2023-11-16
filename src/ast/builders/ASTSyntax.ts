@@ -1,5 +1,6 @@
 import {Token} from "../../Tokenizer";
 import {throwCliError} from "../../Error";
+import {AST} from "../../AST";
 
 export type ASTSyntaxMatch<T extends keyof Token = keyof Token> = [T, Token[T], boolean];
 
