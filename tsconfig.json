@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "AMD",
+    "declaration": true,
+    "outFile": "./dist/index.js",
+    "rootDir": "./",
+    "removeComments": true,
+    "strict": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

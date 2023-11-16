@@ -1,7 +1,7 @@
 import {syntaxError} from "./Error";
 
 export type GroupToken = {
-    type: "group",
+    type: string,
     index: number,
     value: string,
     extra: {
@@ -10,12 +10,15 @@ export type GroupToken = {
         closer?: Token,
         children: Token[],
         closerT?: any
-    }
+    },
+    _end?: any
 };
 export type Token = GroupToken | {
     type: string,
     value: string,
-    index: number
+    index: number,
+    extra?: any,
+    _end?: any
 };
 export type Tokenizer = (code: string, index: Int32Array, tokens: Token[]) => boolean;
 
@@ -34,10 +37,9 @@ export function tokenize(code: string): Token[] {
             syntaxError(code, index[0], TokenizerErrors.unexpectedToken);
         }
     }
-    return tokens.map(i => {
+    return tokens/*.map(i => {
         const index = i.index;
         delete i.index;
-        Object.defineProperty(i, "index", {get: () => index});
         return i;
-    });
+    })*/;
 }

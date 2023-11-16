@@ -18,7 +18,7 @@ type RepeatingTokenizerOptions = {
     fileEndThrow?: null | true | string,
     fileEndInjectorThrow?: null | true | string,
     maxLengthThrow?: null | true | string,
-}
+};
 
 const DEFAULT_ERRORS = {
     allow: "Unexpected disallowed token.",
@@ -37,8 +37,8 @@ function checkSubstrHelper(code: string, i: number, list: string[]): [number, st
     return null;
 }
 
-export function buildRepeatingTokenizer(options: RepeatingTokenizerOptions): Tokenizer {
-    options = JSON.parse(JSON.stringify(options));
+export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): Tokenizer {
+    const options = JSON.parse(JSON.stringify(gotOptions));
 
     if (!("maxLength" in options) || options.maxLength === null) options.maxLength = Infinity;
 
@@ -60,38 +60,38 @@ export function buildRepeatingTokenizer(options: RepeatingTokenizerOptions): Tok
 
     if (options.allowed) {
         allowHasStart = options.allowed.includes(".start");
-        options.allowed = options.allowed.filter(i => i !== ".start");
+        options.allowed = options.allowed.filter((i: string) => i !== ".start");
         if (allowHasStart) options.allowed.splice(0, 0, ".start");
     }
 
     if (options.disallowed) {
         disallowHasStart = options.disallowed.includes(".start");
-        options.disallowed = options.disallowed.filter(i => i !== ".start");
+        options.disallowed = options.disallowed.filter((i: string) => i !== ".start");
         if (disallowHasStart) options.disallowed.splice(0, 0, ".start");
     }
 
     if (options.end) {
         endHasStart = options.end.includes(".start");
-        options.end = options.end.filter(i => i !== ".start");
+        options.end = options.end.filter((i: string) => i !== ".start");
         if (endHasStart) options.end.splice(0, 0, ".start");
     }
 
     if (options.escape) {
         escapeHasStart = options.escape.includes(".start");
-        options.escape = options.escape.filter(i => i !== ".start");
+        options.escape = options.escape.filter((i: string) => i !== ".start");
         if (escapeHasStart) options.escape.splice(0, 0, ".start");
     }
 
     if (options.injectorStart) {
         injectStartHasStart = options.injectorStart.includes(".start");
-        options.injectorStart = options.injectorStart.filter(i => i !== ".start");
+        options.injectorStart = options.injectorStart.filter((i: string) => i !== ".start");
         if (injectStartHasStart) options.injectorStart.splice(0, 0, ".start");
     }
 
     if (options.injectorEnd) {
         injectEndHasStart = options.injectorEnd.includes(".start");
         injectEndHasInjectorStart = options.injectorEnd.includes(".injectorStart");
-        options.injectorEnd = options.injectorEnd.filter(i => i !== ".start" && i !== ".injectorStart");
+        options.injectorEnd = options.injectorEnd.filter((i: string) => i !== ".start" && i !== ".injectorStart");
         if (injectEndHasInjectorStart) options.injectorEnd.splice(0, 0, ".injectorStart");
         if (injectEndHasStart) options.injectorEnd.splice(0, 0, ".start");
     }

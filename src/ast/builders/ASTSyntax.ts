@@ -6,11 +6,12 @@ export type ASTSyntaxMatch<T extends keyof Token = keyof Token> = [T, Token[T]];
 export type ASTSyntaxMode = "some" | "every";
 
 export type ASTSingleSyntax = {
-    label?: string,
+    label?: null | string,
     matches: ASTSyntaxMatch[],
     min: number,
     max: number,
-    mode: ASTSyntaxMode
+    mode: ASTSyntaxMode,
+    jobId: null | number
 };
 
 export type ASTBuilder = {
@@ -21,7 +22,7 @@ export type ASTBuilder = {
     mode(mode: ASTSyntaxMode): ASTBuilder
 };
 
-export type ASTBuilderFN = (builder: ASTBuilder) => ASTBuilder;
+export type ASTBuilderFN = null | ((builder: ASTBuilder) => ASTBuilder);
 
 function makeHelper(data: ASTSingleSyntax): ASTBuilder {
     return {
@@ -83,6 +84,10 @@ export class ASTSyntax {
                     k.matches.push(["value", colonSpl[0]]);
                     continue;
                 }
+                if (["end", "!"].includes(colonSpl[0])) {
+                    k.matches.push(["_end", true]);
+                    continue;
+                }
                 if (["value", "v"].includes(colonSpl[0])) {
                     k.matches.push(["value", colonSpl[1]]);
                     continue;
@@ -116,6 +121,12 @@ export class ASTSyntax {
                     k.label = colonSpl[1];
                     continue;
                 }
+                if (["job", "j"].includes(colonSpl[0])) {
+                    const v = ["inf", "infinity"].includes(colonSpl[1].toLowerCase()) ? Infinity : parseInt(colonSpl[1]);
+                    if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
+                    k.jobId = v;
+                    continue;
+                }
                 if (["type", "t", ""].includes(colonSpl[0])) {
                     if (colonSpl[1] === "*") {
                         k.mode = "every";
@@ -125,7 +136,7 @@ export class ASTSyntax {
                     k.matches.push(["type", colonSpl[1]]);
                     continue;
                 }
-                throwCliError("Error", "Invalid AST Syntax argument: " + i + " invalid instruction: " + s);
+                throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
             }
             astSyntax.syntaxes.push(k);
         });
@@ -139,7 +150,8 @@ export class ASTSyntax {
             matches: typeof types === "string" ? [["type", types]] : types.map(type => ["type", type]),
             min: 1,
             max: 1,
-            mode: "some"
+            mode: "some",
+            jobId: null
         });
         if (build) build(helper);
         return helper.data;
@@ -151,7 +163,8 @@ export class ASTSyntax {
             matches: typeof values === "string" ? [["value", values]] : values.map(value => ["value", value]),
             min: 1,
             max: 1,
-            mode: "some"
+            mode: "some",
+            jobId: null
         });
         if (build) build(helper);
         return helper.data;
@@ -166,7 +179,8 @@ export class ASTSyntax {
             ],
             min: 1,
             max: 1,
-            mode: "some"
+            mode: "some",
+            jobId: null
         });
         if (build) build(helper);
         return helper.data;
@@ -178,7 +192,8 @@ export class ASTSyntax {
             matches: [],
             min: 1,
             max: 1,
-            mode
+            mode,
+            jobId: null
         });
         if (build) build(helper);
         return helper.data;

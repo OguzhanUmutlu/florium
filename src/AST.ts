@@ -1,12 +1,14 @@
 import {Token, tokenize} from "./Tokenizer";
-import {syntaxError} from "./Error";
+import {syntaxError, throwCliError} from "./Error";
 import {ASTSingleSyntax, ASTSyntax, ASTSyntaxMatch, ASTSyntaxMode} from "./ast/builders/ASTSyntax";
+import {groupTokens} from "./Grouper";
 
-export type Statement = { type: string } & {
+let astId = 0;
+const astMap: Record<number, AST> = {};
+
+export type Statement = Token & Partial<{
     [key: string]: Token | Token[]
-};
-
-export const ASTSyntaxes: ASTSyntax[] = [];
+}>;
 
 export const ASTErrors = {
     unexpectedToken: "Unexpected token."
@@ -26,58 +28,87 @@ function checkASTMatches(token: Token, type: ASTSyntaxMode, matches: ASTSyntaxMa
     }
 }
 
-function checkASTSyntax(tokens: Token[], index: number, syntax: ASTSingleSyntax, nextSyntax: ASTSingleSyntax | null): null | [number, Token[]] {
+function checkASTSyntax(
+    code: string, tokens: Token[], index: number,
+    syntax: ASTSingleSyntax, nextSyntax: ASTSingleSyntax | null
+): null | [number, Token[]] {
     const result: Token[] = [];
+    if (index >= tokens.length) {
+        if (syntax.matches.some(i => i[0] === "_end" && i[1] === true)) return [index, result];
+        return null;
+    }
     let untilAmount = 0;
     for (; index < tokens.length; index++) {
         const token = tokens[index];
         if (nextSyntax && checkASTMatches(token, nextSyntax.mode, nextSyntax.matches)) {
             untilAmount++;
-            if (untilAmount >= nextSyntax.min && result.length >= syntax.min) return [index, result];
+            if (untilAmount >= nextSyntax.min && result.length >= syntax.min) break;
         } else untilAmount = 0;
         if (!checkASTMatches(token, syntax.mode, syntax.matches)) {
             if (result.length < syntax.min) return null;
-            return [index, result];
+            break;
         }
         result.push(token);
         if (syntax.max === result.length) {
-            return [index + 1, result];
-        }
-    }
-    return [tokens.length - 1, result];
-}
-
-export function toAST(code: string, tokens?: Token[]) {
-    if (!tokens) tokens = tokenize(code);
-    const statements: Statement[] = [];
-    for (let index = 0; index < tokens.length; index++) {
-        let indexFail = true;
-        for (const {label, syntaxes} of ASTSyntaxes) {
-            let fail = false;
-            let tmpIndex = index;
-            const resAst = <Statement>{
-                type: label
-            };
-            for (let i = 0; i < syntaxes.length; i++) {
-                const syntax = syntaxes[i];
-                const res = checkASTSyntax(tokens, tmpIndex, syntax, syntaxes[i + 1]);
-                if (res === null) {
-                    fail = true;
-                    break;
-                }
-                tmpIndex = res[0];
-                if (syntax.label) resAst[syntax.label] = syntax.min === syntax.max && syntax.min === 1 ? res[1][0] : res[1];
-            }
-            if (fail) continue;
-            index = tmpIndex;
-            indexFail = false;
-            statements.push(resAst);
+            index++;
             break;
         }
-        if (!indexFail) continue;
-        const token = tokens[index];
-        console.log(token)
-        syntaxError(code, token.index, ASTErrors.unexpectedToken, token.value.length);
     }
-    return statements;
+    if (syntax.jobId) {
+        const ast = astMap[syntax.jobId];
+        if (!ast) throwCliError("ASTError", "Invalid AST job id: " + syntax.jobId);
+        return [index, result.map(i => {
+            if (!i.extra || !i.extra.children) return i;
+            return ast.read(code, i.extra.children, false);
+        }).flat()];
+    }
+    return [index, result];
+}
+
+export class AST {
+    syntaxes: ASTSyntax[] = [];
+    id: number = ++astId;
+
+    constructor() {
+        astMap[this.id] = this;
+    };
+
+    read(code: string, tokens?: Token[], group: boolean = true) {
+        if (!tokens) tokens = tokenize(code);
+        if (group) tokens = groupTokens(code, tokens);
+        const statements: Statement[] = [];
+        for (let index = 0; index < tokens.length; index++) {
+            const token = tokens[index];
+            let indexFail = true;
+            for (const {label, syntaxes} of this.syntaxes) {
+                let fail = false;
+                let tmpIndex = index;
+                const resAst = <Statement>{
+                    type: label,
+                    index: token.index,
+                    value: ""
+                };
+                for (let i = 0; i < syntaxes.length; i++) {
+                    const syntax = syntaxes[i];
+                    const res = checkASTSyntax(code, tokens, tmpIndex, syntax, syntaxes[i + 1]);
+                    if (res === null) {
+                        fail = true;
+                        break;
+                    }
+                    tmpIndex = res[0];
+                    if (syntax.label) resAst[syntax.label] = syntax.min === syntax.max && syntax.min === 1 && !syntax.jobId ? res[1][0] : res[1];
+                }
+                if (fail) continue;
+                index = tmpIndex - 1;
+                indexFail = false;
+                const lastToken = tokens[index];
+                resAst.value = code.substring(token.index, lastToken.index + lastToken.value.length);
+                statements.push(resAst);
+                break;
+            }
+            if (!indexFail) continue;
+            syntaxError(code, token.index, ASTErrors.unexpectedToken, token.value.length);
+        }
+        return statements;
+    }
 }
