@@ -1,4 +1,5 @@
-import {AST, referenceError, Statement, syntaxError, throwCliError, Token} from "../../../../src/index";
+import {referenceError, Statement, syntaxError, throwCliError, Token} from "../../../../src/index";
+import {statementAST} from "../ast";
 
 const varId: Record<string, number> = {};
 const funcId: Record<string, number> = {};
@@ -54,7 +55,6 @@ function backtraceVariables(scope: Scope) {
 }
 
 export function transpileToC(actualCode: string, statements?: Statement[]) {
-    const statementAST = AST.findByLabel("StatementAST");
     const stList = statements ?? statementAST.read(actualCode);
     const functionS: string[] = [];
     const transpiled = transpileToCSub(actualCode, stList, functionS).map(i => "   " + i).join("\n");
@@ -83,10 +83,10 @@ export function transpileToCSub(actualCode: string, statements: Statement[], fun
             if (!(name in varId)) varId[name] = -1;
             const id = ++varId[name];
             scope.variables[name] = {name, id};
-            return [idToName(id, name), false];
+            return ["v" + idToName(id, name), false];
         }
         const id = definedScope.variables[name].id;
-        return [idToName(id, name), true];
+        return ["v" + idToName(id, name), true];
     }
 
     function getFunctionName(name: string) {

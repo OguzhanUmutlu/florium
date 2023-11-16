@@ -1,0 +1,1 @@
+bun --bun run test.ts ./test.php

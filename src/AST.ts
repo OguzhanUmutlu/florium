@@ -5,7 +5,8 @@ import {groupTokens} from "./Grouper";
 import * as fs from "fs";
 
 let astId = 0;
-const astMap: Record<number, AST> = {};
+const astMap: Record<any, AST> = {};
+const astStrMap: Record<any, AST> = {};
 
 export type Statement = Token & Partial<{
     [key: string]: Token | Token[]
@@ -56,7 +57,7 @@ function checkASTSyntax(
         }
     }
     if (syntax.jobId) {
-        const ast = astMap[syntax.jobId];
+        const ast = astMap[syntax.jobId] ?? astStrMap[syntax.jobId];
         if (!ast) throwCliError("ASTError", "Invalid AST job id: " + syntax.jobId);
         return [index, result.map(i => {
             if (!i.extra || !i.extra.children) return i;
@@ -64,19 +65,30 @@ function checkASTSyntax(
         }).flat()];
     }
     if (syntax.jobAllId) { // warning: might cause infinite recursion if the type of the token is a grouped token list.
-        const ast = astMap[syntax.jobAllId];
-        if (!ast) throwCliError("ASTError", "Invalid AST job-all id: " + syntax.jobId);
+        const ast = astMap[syntax.jobAllId] ?? astStrMap[syntax.jobAllId];
+        if (!ast) throwCliError("ASTError", "Invalid AST job-all id: " + syntax.jobAllId);
         return [index, ast.read(code, result, false)];
     }
     return [index, result];
 }
 
 export class AST {
+    #label: string = "";
     syntaxes: ASTSyntax[] = [];
     id: number = ++astId;
 
-    constructor() {
+    constructor(label?: string) {
         astMap[this.id] = this;
+        if (label) this.label = label;
+    };
+
+    set label(label: string) {
+        delete astStrMap[this.#label];
+        astStrMap[label] = this;
+    };
+
+    get label() {
+        return this.#label;
     };
 
     read(code: string, tokens?: Token[], group: boolean = true) {
@@ -118,6 +130,14 @@ export class AST {
         return statements;
     };
 
+    static findById(id: number) {
+        return astMap[id];
+    };
+
+    static findByLabel(label: string) {
+        return astStrMap[label];
+    };
+
     static loop(statements: Statement[], handlers: Record<string, Function>, deepness = 0) {
         for (const statement of statements) {
             const handler = handlers[statement.type];
@@ -128,16 +148,33 @@ export class AST {
     };
 
     static fromText(text: string) {
-        const ast = new AST();
+        let ast: AST | null = null;
         for (const line of text.split("\n")) {
-            const spl = line.indexOf(":");
+            const trim = line.trim();
+            if (!trim || trim[0] === "#") continue;
+            if (trim.startsWith("@label:")) {
+                const label = trim.substring("@label:".length).trimStart();
+                ast = astStrMap[label] = astStrMap[label] ?? new AST(label);
+                continue;
+            }
+            if (trim.startsWith("@push:")) {
+                const label = trim.substring("@push:".length).trimStart();
+                if (!ast) ast = new AST();
+                const target = astStrMap[label];
+                if (!target) throwCliError("ASTError", "No AST named " + target + " was found where @push was used.");
+                if (target === ast) throwCliError("ASTError", "An AST cannot be pushed to itself in AST instructions.");
+                ast.syntaxes.push(...target.syntaxes);
+                continue;
+            }
+            const spl = trim.indexOf(":");
             if (spl === -1) continue;
+            if (!ast) ast = new AST();
             ast.syntaxes.push(ASTSyntax.fromText(line.substring(0, spl), line.substring(spl + 1)));
         }
-        return ast;
+        return ast ?? new AST();
     };
 
     static fromFile(file: string) {
-        return AST.fromText(fs.readFileSync(file, "utf-8"));
+        return AST.fromText(fs.readFileSync(file, "utf-8").replaceAll("\r", ""));
     };
 }

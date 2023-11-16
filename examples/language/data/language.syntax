@@ -1,0 +1,78 @@
+@label: ExpressionAST
+
+# "c:" is ",", "n:" is "\n"
+
+semicolon: ;
+
+line: n:
+
+comma: c:
+
+string: :string
+
+group: l:children,:group-parenthesis,j:ExpressionAST
+
+operator: +,-,*,/,%,~,|,&,^,||,&&,>,<,>=,<=,!,!=,==
+
+number: :integer . :integer
+
+number: . :integer
+
+number: :integer
+
+function_call: l:name,:word l:arguments,:group-parenthesis,j:SplitByCommaAST
+
+set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,!:,\n
+
+inc_dec_variable: l:name,:word l:changer,++,-- ;,!:,\n
+
+variable: :word
+
+
+
+
+
+
+
+@label: StatementAST
+
+set_variable: l:name,:word =,+=,-=,*=,/=,%= l:expression,:*,>:1,<:inf,j:ExpressionAST ;,!:,\n
+
+if_statement: if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:group-curly-brace,j:StatementAST
+
+if_statement: if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:*,>:1,<:inf,ja:ExpressionAST ;,!:,\n
+
+else_statement: else l:scope,:group-curly-brace,j:StatementAST
+
+elseif_statement: else if l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:group-curly-brace,j:StatementAST
+
+for_statement: for l:instructions,:group-parenthesis,j:SplitBySemicolonAST l:scope,:group-curly-brace,j:StatementAST
+
+while_statement: while l:requirement,:group-parenthesis,j:ExpressionAST l:scope,:group-curly-brace,j:StatementAST
+
+loop_statement: loop l:scope,:group-curly-brace,j:StatementAST
+
+# not sure if i want to add this(since this is just an example):
+# function_statement: function l:name,:word l:arguments,:group-parenthesis,j:SplitByCommaAST l:scope,:group-curly-brace,j:StatementAST
+
+@push: ExpressionAST
+
+
+
+
+
+
+
+@label: SplitByCommaAST
+
+split: l:expression,:*,>:1,<:inf,ja:ExpressionAST c:,!:
+
+
+
+
+
+
+
+@label: SplitBySemicolonAST
+
+split: l:expression,:*,>:1,<:inf,ja:StatementAST ;,!:

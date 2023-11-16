@@ -2,7 +2,7 @@ import {exit} from "process";
 import {blue, red} from "./Color";
 
 export function throwCliError(type: string, error: string) {
-    console.error(red(type + ": " + error));
+    console.error(red(type + ": " + error.replaceAll("\r", "")));
     exit(1);
 }
 

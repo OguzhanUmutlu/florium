@@ -12,8 +12,8 @@ export type ASTSingleSyntax = {
     min: number,
     max: number,
     mode: ASTSyntaxMode,
-    jobId: null | number,
-    jobAllId: null | number
+    jobId: null | number | string,
+    jobAllId: null | number | string
 };
 
 export type ASTBuilder = {
@@ -21,7 +21,9 @@ export type ASTBuilder = {
     labelAs(label: string): ASTBuilder,
     min(min: number): ASTBuilder,
     max(max: number): ASTBuilder,
-    mode(mode: ASTSyntaxMode): ASTBuilder
+    mode(mode: ASTSyntaxMode): ASTBuilder,
+    assignJob(ast: AST | number | string): ASTBuilder,
+    assignJobAll(ast: AST | number | string): ASTBuilder
 };
 
 export type ASTBuilderFN = null | ((builder: ASTBuilder) => ASTBuilder);
@@ -43,6 +45,14 @@ function makeHelper(data: ASTSingleSyntax): ASTBuilder {
         },
         mode(mode: ASTSyntaxMode) {
             this.data.mode = mode;
+            return this;
+        },
+        assignJob(ast: AST | number | string) {
+            this.data.jobId = ast instanceof AST ? ast.id : ast;
+            return this;
+        },
+        assignJobAll(ast: AST | number | string) {
+            this.data.jobAllId = ast instanceof AST ? ast.id : ast;
             return this;
         }
     };
@@ -68,6 +78,7 @@ export class ASTSyntax {
         // Note: If you want to use the value " ", then do "space:" or "s:" (which is a confused face)
         // Note: If you want to use the value ":", then do "colon:" or "d:" (which is a smiley face)
         // Note: If you want to use the value ",", then do "comma:" or "c:" (which is a cute happy face)
+        // Note: If you want to use the value "\n", then do "line:" or "n:" (which is a talking face)
 
         // Setting the mode: "mode:some" or "mode:every"
         // Setting the min: "min:1"
@@ -107,6 +118,10 @@ export class ASTSyntax {
                     k.matches.push(["value", ",", orIsIt]);
                     continue;
                 }
+                if (["line", "n"].includes(colonSpl[0])) {
+                    k.matches.push(["value", "\n", orIsIt]);
+                    continue;
+                }
                 if (colonSpl[0] === "mode") {
                     if (!["some", "every"].includes(colonSpl[1])) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
                     k.mode = <ASTSyntaxMode>colonSpl[1];
@@ -130,14 +145,14 @@ export class ASTSyntax {
                 }
                 if (["job", "j"].includes(colonSpl[0])) {
                     const v = ["inf", "infinity"].includes(colonSpl[1].toLowerCase()) ? Infinity : parseInt(colonSpl[1]);
-                    if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
-                    k.jobId = v;
+                    if (isNaN(v) || v < 0) k.jobId = colonSpl[1];
+                    else k.jobId = v;
                     continue;
                 }
                 if (["jobAll", "ja"].includes(colonSpl[0])) {
                     const v = ["inf", "infinity"].includes(colonSpl[1].toLowerCase()) ? Infinity : parseInt(colonSpl[1]);
-                    if (isNaN(v) || v < 0) throwCliError("ASTError", "Invalid: " + i + " instruction: " + s);
-                    k.jobAllId = v;
+                    if (isNaN(v) || v < 0) k.jobAllId = colonSpl[1];
+                    else k.jobAllId = v;
                     continue;
                 }
                 if (["type", "t", ""].includes(colonSpl[0])) {
