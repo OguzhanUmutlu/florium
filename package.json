@@ -1,5 +1,5 @@
 {
-  "name": "urlang",
+  "name": "florium",
   "version": "1.0.4",
   "description": "This is a library that lets you build your own programming language!",
   "main": "dist/index.js",
@@ -13,12 +13,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OguzhanUmutlu/urlang.git"
+    "url": "git+https://github.com/OguzhanUmutlu/florium.git"
   },
   "bugs": {
-    "url": "https://github.com/OguzhanUmutlu/urlang"
+    "url": "https://github.com/OguzhanUmutlu/florium"
   },
-  "homepage": "https://github.com/OguzhanUmutlu/urlang#readme",
+  "homepage": "https://github.com/OguzhanUmutlu/florium#readme",
   "keywords": [
     "language",
     "programming",

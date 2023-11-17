@@ -1,4 +1,4 @@
-# urlang
+# florium
 
 This is a library that lets you make your own programming language that can be compiled to machine code!
 
@@ -7,7 +7,7 @@ This is a library that lets you make your own programming language that can be c
 Type this to install the package:
 
 ```shell
-npm install urlang
+npm install florium
 ```
 
 # Tokenizing
@@ -20,7 +20,7 @@ This is super easy to do because all these come out of the box!
 ## Example:
 
 ```js
-import {Tokenizers, CharacterList} from "urlang";
+import {Tokenizers, CharacterList} from "florium";
 
 Tokenizers.push(
     // "//" is the text that will start the comment and it will end with "\n"
@@ -70,7 +70,7 @@ Tokenizers.push(
 You can use the tokenizer right away with the `tokenize` function:
 
 ```js
-import {tokenize} from "urlang";
+import {tokenize} from "florium";
 
 // assuming you added your tokenizers
 
@@ -187,7 +187,7 @@ Every line of this file will be considered as a syntax of your language.
 You can import your syntax file like this:
 
 ```js
-import {AST} from "urlang";
+import {AST} from "florium";
 
 AST.fromFile("./language.syntax");
 ```
@@ -244,7 +244,7 @@ Example:
 Same rules apply.
 
 ```js
-import {AST, ASTSyntax} from "urlang";
+import {AST, ASTSyntax} from "florium";
 
 const ast = new AST("MyAST");
 
@@ -261,7 +261,7 @@ ast.syntaxes.push(
 Same rules apply.
 
 ```js
-import {AST, ASTSyntax} from "urlang";
+import {AST, ASTSyntax} from "florium";
 
 const ast = new AST("MyAST");
 
@@ -288,7 +288,7 @@ Now you can run the AST by using the `.read(code: string)` function.
 Usages:
 
 ```js
-import {tokenize, groupTokens} from "urlang";
+import {tokenize, groupTokens} from "florium";
 
 const myAst = new AST;
 
