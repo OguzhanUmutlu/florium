@@ -1,11 +1,11 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 
 const CommentCharacters: Record<string, string> = {
     "//": "\n",
     "/*": "*/"
 };
 
-export const CommentTokenizer: Tokenizer = function (code: string, index: Int32Array, _: Token[]) {
+export const CommentTokenizer: TokenizerFn = function (code: string, index: Int32Array, _: Token[]) {
     const startIndex = index[0];
     for (const multi in CommentCharacters) {
         const k = startIndex + multi.length + 1;

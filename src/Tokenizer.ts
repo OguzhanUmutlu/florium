@@ -20,11 +20,9 @@ export type Token = GroupToken | {
     extra?: any,
     _end?: any
 };
-export type Tokenizer = (code: string, index: Int32Array, tokens: Token[]) => boolean;
+export type TokenizerFn = (code: string, index: Int32Array, tokens: Token[], tokenizer: Tokenizer) => boolean;
 
 export type character = string; // with a length of 1
-
-export const Tokenizers: Tokenizer[] = [];
 
 export const TokenizerErrors = {
     unexpectedToken: "Unexpected token."
@@ -46,16 +44,21 @@ export const CharacterList = {
     WordAndInteger: [...WordCharacters, ...IntegerCharacters]
 };
 
-export function tokenize(code: string): Token[] {
-    const tokens: Token[] = [];
-    for (let index = new Int32Array([0]); index[0] < code.length; index[0]++) {
-        if (!Tokenizers.some(tokenizer => tokenizer(code, index, tokens))) {
-            syntaxError(code, index[0], TokenizerErrors.unexpectedToken);
+export class Tokenizer {
+    tokenizers: TokenizerFn[] = [];
+
+    read(code: string): Token[] {
+        const tokens: Token[] = [];
+        for (let index = new Int32Array([0]); index[0] < code.length; index[0]++) {
+            if (!this.tokenizers.some(tokenizer => tokenizer(code, index, tokens, this))) {
+                syntaxError(code, index[0], TokenizerErrors.unexpectedToken);
+            }
         }
-    }
-    return tokens/*.map(i => {
-        const index = i.index;
-        delete i.index;
-        return i;
-    })*/;
+        return tokens;
+    };
+
+    add(...tokenizers: TokenizerFn[]) {
+        this.tokenizers.push(...tokenizers);
+        return this;
+    };
 }

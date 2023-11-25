@@ -1,7 +1,6 @@
 import {argv, exit} from "process";
 import {existsSync as fileExists, readFileSync as readFile, statSync as fileStat, writeFileSync as writeFile} from "fs";
 import {AST, throwCliError} from "../../src/index";
-import {useTokens} from "./data/tokens";
 import {transpileToC} from "./data/transpiler/c_transpile";
 
 const file = argv[2];
@@ -35,7 +34,6 @@ if (fileExists(outFile) && !fileStat(outFile).isFile()) {
 const code = readFile(file, "utf-8");
 
 AST.fromFile("./data/language.syntax");
-useTokens();
 const cCode = transpileToC(code);
 
 writeFile(outFile, cCode);

@@ -1,6 +1,6 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 
-export function buildSymbolTokenizer(characters: Record<string, string>): Tokenizer {
+export function buildSymbolTokenizer(characters: Record<string, string>): TokenizerFn {
     const symNames = Object.keys(characters).sort((a, b) => b.length - a.length);
     return function (code: string, index: Int32Array, tokens: Token[]) {
         const startIndex = index[0];

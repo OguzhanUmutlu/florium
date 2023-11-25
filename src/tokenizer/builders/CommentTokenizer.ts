@@ -1,6 +1,6 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 
-export function buildCommentTokenizer(characters: Record<string, string>): Tokenizer {
+export function buildCommentTokenizer(characters: Record<string, string>): TokenizerFn {
     return function (code: string, index: Int32Array, _: Token[]) {
         const startIndex = index[0];
         for (const multi in characters) {

@@ -20,9 +20,11 @@ This is super easy to do because all these come out of the box!
 ## Example:
 
 ```js
-import {Tokenizers, CharacterList} from "florium";
+import {Tokenizer, CharacterList} from "florium";
 
-Tokenizers.push(
+const myTokenizer = new Tokenizer();
+
+myTokenizer.add(
     // "//" is the text that will start the comment and it will end with "\n"
     buildCommentTokenizer({
         "//": "\n"
@@ -70,13 +72,15 @@ Tokenizers.push(
 You can use the tokenizer right away with the `tokenize` function:
 
 ```js
-import {tokenize} from "florium";
+import {Tokenizer} from "florium";
+
+const myTokenizer = new Tokenizer();
 
 // assuming you added your tokenizers
 
 const code = "...";
 
-console.log(tokenize(code));
+console.log(myTokenizer.read(code));
 ```
 
 # AST (Abstract Syntax Tree)
@@ -249,10 +253,10 @@ import {AST, ASTSyntax} from "florium";
 const ast = new AST("MyAST");
 
 ast.syntaxes.push(
-        ASTSyntax.fromText(
-                "print",
-                `print ( type:word )`
-        )
+    ASTSyntax.fromText(
+        "print",
+        `print ( type:word )`
+    )
 );
 ```
 
@@ -280,8 +284,8 @@ ast.syntaxes.push(
 
 # Using the AST
 
-Important: You have to **first** push your tokenizers to the `Tokenizers`
-list then run the AST!
+Important: You have to **first** add your tokenizers to your `Tokenizer` class
+then run the AST!
 
 Now you can run the AST by using the `.read(code: string)` function.
 
@@ -296,9 +300,9 @@ const myAst = new AST;
 
 const code = "...";
 
-console.log(myAst.read(code));
+console.log(myAst.read(code), myTokenizer);
 
-console.log(myAst.read(code, tokenize(code)));
+console.log(myAst.read(code, myTokenizer.read(code)));
 
-console.log(myAst.read(code, groupTokens(tokenize(code)), false));
+console.log(myAst.read(code, groupTokens(myTokenizer.read(code)), false));
 ```

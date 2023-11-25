@@ -1,4 +1,4 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 
  const SymbolCharacters: Record<string, string> = {
     "!": "not",
@@ -46,7 +46,7 @@ import {Token, Tokenizer} from "../../Tokenizer";
 
 const symNames = Object.keys(SymbolCharacters).sort((a, b) => b.length - a.length);
 
-export const SymbolTokenizer: Tokenizer = function (code: string, index: Int32Array, tokens: Token[]) {
+export const SymbolTokenizer: TokenizerFn = function (code: string, index: Int32Array, tokens: Token[]) {
     const startIndex = index[0];
     for (const sym of symNames) {
         const rest = code.substring(startIndex, startIndex + sym.length);

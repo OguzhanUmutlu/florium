@@ -1,4 +1,4 @@
-import {character, Token, Tokenizer, Tokenizers} from "../../Tokenizer";
+import {character, Token, Tokenizer, TokenizerErrors, TokenizerFn} from "../../Tokenizer";
 import {syntaxError} from "../../Error";
 
 type RepeatingTokenizerOptions = {
@@ -37,7 +37,7 @@ function checkSubstrHelper(code: string, i: number, list: string[]): [number, st
     return null;
 }
 
-export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): Tokenizer {
+export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): TokenizerFn {
     const options = JSON.parse(JSON.stringify(gotOptions));
 
     if (!("maxLength" in options) || options.maxLength === null) options.maxLength = Infinity;
@@ -103,7 +103,7 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
     const hasInjectorStart = options.injectorStart && options.injectorStart.length;
     const hasInjectorEnd = options.injectorEnd && options.injectorEnd.length;
 
-    return function (code: string, index: Int32Array, tokens: Token[]) {
+    return function (code: string, index: Int32Array, tokens: Token[], tokenizer: Tokenizer) {
         const startIndex = index[0];
         const startChar = code[startIndex];
 
@@ -227,8 +227,8 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
                             }
                         }
 
-                        if (!Tokenizers.some(tokenizer => tokenizer(code, index, tokens))) {
-                            syntaxError(code, index[0], "Unexpected token: " + code[index[0]]);
+                        if (!tokenizer.tokenizers.some(t => t(code, index, tokens, tokenizer))) {
+                            syntaxError(code, index[0], TokenizerErrors.unexpectedToken);
                         }
                     }
                     continue;
@@ -252,7 +252,7 @@ export function buildRepeatingTokenizer(gotOptions: RepeatingTokenizerOptions): 
     };
 }
 
-export function buildBasicRepeatingTokenizer(type: string, start: string[], step: string[] = start): Tokenizer {
+export function buildBasicRepeatingTokenizer(type: string, start: string[], step: string[] = start): TokenizerFn {
     return function (code: string, index: Int32Array, tokens: Token[]) {
         const startIndex = index[0];
         const startChar = code[startIndex];

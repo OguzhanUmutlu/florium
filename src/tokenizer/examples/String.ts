@@ -1,4 +1,4 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 import {syntaxError} from "../../Error";
 
 const StringQuotes = new Set([
@@ -9,7 +9,7 @@ const StringEscapeCharacters = new Set([
     "\\"
 ]);
 
-export const StringTokenizer: Tokenizer = function (code: string, index: Int32Array, tokens: Token[]) {
+export const StringTokenizer: TokenizerFn = function (code: string, index: Int32Array, tokens: Token[]) {
     const startIndex = index[0];
     const start = code[startIndex];
     if (!StringQuotes.has(start)) return false;

@@ -1,4 +1,5 @@
 import {AST, referenceError, Statement, syntaxError, throwCliError, Token} from "../../../../src/index";
+import {tokenizer} from "../tokens";
 
 const varId: Record<string, number> = {};
 const funcId: Record<string, number> = {};
@@ -55,7 +56,7 @@ function backtraceVariables(scope: Scope) {
 
 export function transpileToC(actualCode: string, statements?: Statement[]) {
     const statementAST = AST.findByLabel("StatementAST");
-    const stList = statements ?? statementAST.read(actualCode);
+    const stList = statements ?? statementAST.read(actualCode, tokenizer);
     const functionS: string[] = [];
     const transpiled = transpileToCSub(actualCode, stList, functionS).map(i => "   " + i).join("\n");
     return `#include <stdio.h>

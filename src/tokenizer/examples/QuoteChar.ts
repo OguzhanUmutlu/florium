@@ -1,10 +1,10 @@
-import {Token, Tokenizer} from "../../Tokenizer";
+import {Token, TokenizerFn} from "../../Tokenizer";
 
 const CharQuotes = [
     "'"
 ];
 
-export const QuoteCharTokenizer: Tokenizer = function (code: string, index: Int32Array, tokens: Token[]) {
+export const QuoteCharTokenizer: TokenizerFn = function (code: string, index: Int32Array, tokens: Token[]) {
     const i = index[0];
     if (i < code.length - 3) return false;
     if (!CharQuotes.includes(code[i]) || !CharQuotes.includes(code[i + 2])) return false;

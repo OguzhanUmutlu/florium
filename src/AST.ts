@@ -1,4 +1,4 @@
-import {Token, tokenize} from "./Tokenizer";
+import {Token, Tokenizer} from "./Tokenizer";
 import {syntaxError, throwCliError} from "./Error";
 import {ASTSingleSyntax, ASTSyntax, ASTSyntaxMatch, ASTSyntaxMode} from "./ast/builders/ASTSyntax";
 import {groupTokens} from "./Grouper";
@@ -91,8 +91,11 @@ export class AST {
         return this.#label;
     };
 
-    read(code: string, tokens?: Token[], group: boolean = true) {
-        if (!tokens) tokens = tokenize(code);
+    read(code: string, tokens_: Token[] | Tokenizer, group: boolean = true) {
+        let tokens: Token[];
+        if (tokens_ instanceof Tokenizer) {
+            tokens = tokens_.read(code);
+        } else tokens = tokens_;
         if (group) tokens = groupTokens(code, tokens);
         const statements: Statement[] = [];
         for (let index = 0; index < tokens.length; index++) {
